@@ -12,7 +12,9 @@ match::match(char* l, char* r)
 	m_szPathNameR = r;
 	CoInitialize(NULL);
 	m_pImage = NULL;
+	m_pImage2 = NULL;
 	::CoCreateInstance(CLSID_ImageDriver, NULL, CLSCTX_ALL, IID_IImage, (void**)&m_pImage);
+	::CoCreateInstance(CLSID_ImageDriver, NULL, CLSCTX_ALL, IID_IImage, (void**)&m_pImage2);
 }
 
 
@@ -135,6 +137,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	mpEstimator.leastSquaresEstimate(sp, matParameters);
 
 	double usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.9, 0.1, resultData);
+	sp.swap(std::vector<SamePoint>());
 	resultData.swap(std::vector<SamePoint>());
 	
 	Pt lLeftTop(0, 0);
@@ -147,7 +150,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	double f = matParameters[5]*scale;
 
 	std::list<Block> listDataBlock;
-	for (int y = 0; y < ny1; )
+	for (int y = 0; y < ny1;)
 	{
 		if (y+nBlockSize < ny1)
 		{
@@ -200,7 +203,89 @@ void match::domatch(std::vector<SamePoint>& resultData)
 			y = ny1;
 		}
 	}
-	
+	int nBlockNumx = (nx2+nBlockSize-1)/nBlockSize;
+	int nBlockNumy = (ny2+nBlockSize-1)/nBlockSize;
+	int nBlockNum = nBlockNumx*nBlockNumy;
+	std::vector<kd_node*> vecKDTree(nBlockNum);
+	std::list<Block>::iterator blockIte = listDataBlock.begin();
+	m_pImage->Open(_bstr_t(m_szPathNameL), modeRead);
+	m_pImage2->Open(_bstr_t(m_szPathNameR), modeRead);
+	while(blockIte != listDataBlock.end())
+	{
+		pBuf = new uchar[blockIte->nXSize*blockIte->nYSize*nband1];
+		m_pImage->ReadImg(blockIte->nXOrigin, blockIte->nYOrigin, 
+			blockIte->nXOrigin+blockIte->nXSize, blockIte->nYOrigin+blockIte->nYSize, pBuf,
+			blockIte->nXSize, blockIte->nYSize, nband1, 0, 0,
+			blockIte->nXSize, blockIte->nYSize, -1, 0);
+		pixel_t* p = new pixel_t[blockIte->nXSize*blockIte->nYSize];
+		for (int y = 0; y < blockIte->nYSize; ++y)
+		{
+			for (int x = 0, m = 0; x < blockIte->nXSize*nband1; x += nband1, ++m)
+			{
+				double sum = 0;
+				for (int n = 0; n < nband1; ++n)
+				{
+					sum += pBuf[y*blockIte->nXSize*nband1+x+n];
+				}
+				p[y*blockIte->nXSize+m] = sum/(nband1*225.0);
+			}
+		}
+		delete []pBuf;
+		pBuf = NULL;
+		std::vector<Keypoint> feature;
+		sift(p, feature, blockIte->nXSize, blockIte->nYSize);
+		delete []p;
+		p = NULL;
+		std::vector<Keypoint>::iterator feaIte = feature.begin();
+		while(feaIte != feature.end())
+		{
+			feaIte->dx += blockIte->nXOrigin;
+			feaIte->dy += blockIte->nYOrigin;
+			int x = int(feaIte->dx*a+feaIte->dy*b+c);
+			int y = int(feaIte->dx*d+feaIte->dy*e+f);
+			int idx = x/nBlockSize;
+			int idy = y/nBlockSize;
+			int nBlockIndex = idy*nBlockNumx+idx;
+			if (vecKDTree[nBlockIndex] == NULL)
+			{
+				int xsize = nBlockSize;
+				int ysize = nBlockSize;
+				if (idx == nBlockNumx-1)
+				{
+					xsize = nx2%nBlockSize;
+				}
+				if (idy == nBlockNumy-1)
+				{
+					ysize = ny2%nBlockSize;
+				}
+				pBuf = new uchar[xsize*ysize*nband2];
+				m_pImage2->ReadImg(x, y, x+xsize, y+ysize, pBuf, xsize, ysize, nband2, 0, 0, xsize, ysize, -1, 0);
+				p = new pixel_t[xsize*ysize];
+				for(int y = 0; y < ysize; ++y)
+				{
+					for (int x = 0, m = 0; x < xsize*nband2; x += nband2, ++m)
+					{
+						double sum = 0;
+						for (int n = 0; n < nband2; ++n)
+						{
+							sum += pBuf[y*xsize*nband2+x+n];
+						}
+						p[y*xsize+m] = sum/(nband2*255.0);
+					}
+				}
+				delete []pBuf;
+				pBuf = NULL;
+				std::vector<Keypoint> feature2;
+				sift(p, feature2, xsize, ysize);
+
+			}
+		}
+		++blockIte;
+	}
+	m_pImage->Close();
+	m_pImage2->Close();
+
+
 	//mosaic
 	Pt calrLeftTop;
 	Pt calrRightBottom;

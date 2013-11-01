@@ -81,5 +81,6 @@ private:
 	Sift sl;
 	Sift sr;
 	IImage* m_pImage;
+	IImage* m_pImage2;
 };
 
