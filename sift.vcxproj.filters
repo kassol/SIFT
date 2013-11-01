@@ -15,36 +15,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sift.h">
+    <ClInclude Include="include\match.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="matParamEstimator.h">
+    <ClInclude Include="include\matParamEstimator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="parameterEsitmator.h">
+    <ClInclude Include="include\parameterEsitmator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ransac.h">
+    <ClInclude Include="include\ransac.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="match.h">
+    <ClInclude Include="include\sift.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sift.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\match.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="matParamEstimator.cpp">
+    <ClCompile Include="src\matParamEstimator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ransac.cpp">
+    <ClCompile Include="src\ransac.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="match.cpp">
+    <ClCompile Include="src\sift.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

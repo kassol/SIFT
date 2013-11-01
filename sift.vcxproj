@@ -10,6 +10,20 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\match.h" />
+    <ClInclude Include="include\matParamEstimator.h" />
+    <ClInclude Include="include\parameterEsitmator.h" />
+    <ClInclude Include="include\ransac.h" />
+    <ClInclude Include="include\sift.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\match.cpp" />
+    <ClCompile Include="src\matParamEstimator.cpp" />
+    <ClCompile Include="src\ransac.cpp" />
+    <ClCompile Include="src\sift.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1BF8D442-4006-474A-A346-5E3B91ACE615}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -53,7 +67,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>false</TreatWarningAsError>
-      <AdditionalIncludeDirectories>C:\Program Files\Visual Leak Detector\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -70,6 +84,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -78,20 +93,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="match.h" />
-    <ClInclude Include="matParamEstimator.h" />
-    <ClInclude Include="parameterEsitmator.h" />
-    <ClInclude Include="ransac.h" />
-    <ClInclude Include="sift.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="match.cpp" />
-    <ClCompile Include="matParamEstimator.cpp" />
-    <ClCompile Include="ransac.cpp" />
-    <ClCompile Include="sift.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
