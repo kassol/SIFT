@@ -3,7 +3,6 @@
 *.user
 *.sdf
 *.opensdf
-*.filters
 ipch/
 *.ipch
 [Dd]ebug/
