@@ -2,6 +2,7 @@
 #include "matParamEstimator.h"
 #include "ransac.h"
 #include <algorithm>
+#include <iostream>
 
 
 
@@ -212,6 +213,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	std::list<Block>::iterator blockIte = listDataBlock.begin();
 	m_pImage->Open(_bstr_t(m_szPathNameL), modeRead);
 	m_pImage2->Open(_bstr_t(m_szPathNameR), modeRead);
+	int countblock = 0;
 	while(blockIte != listDataBlock.end())
 	{
 		pBuf = new uchar[blockIte->nXSize*blockIte->nYSize*nband1];
@@ -238,8 +240,11 @@ void match::domatch(std::vector<SamePoint>& resultData)
 		sift(p, feature, blockIte->nXSize, blockIte->nYSize);
 		p = NULL;
 		std::vector<Keypoint>::iterator feaIte = feature.begin();
+		int count = 0;
 		while(feaIte != feature.end())
 		{
+			std::cout<<countblock<<"/"<<listDataBlock.size()<<":"<<count<<"/"<<feature.size()<<std::endl;
+			++count;
 			feaIte->dx += blockIte->nXOrigin;
 			feaIte->dy += blockIte->nYOrigin;
 			int calx = int(feaIte->dx*a+feaIte->dy*b+c);
@@ -336,6 +341,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 			}
 			++kdIte;
 		}
+		++countblock;
 		++blockIte;
 	}
 	m_pImage->Close();
