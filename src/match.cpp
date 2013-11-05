@@ -128,6 +128,8 @@ void match::domatch(std::vector<SamePoint>& resultData)
 
 	free(feat1);
 	free(feat2);
+	feat1 = NULL;
+	feat2 = NULL;
 
 
 	std::vector<double> matParameters;
@@ -206,7 +208,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	int nBlockNumx = (nx2+nBlockSize-1)/nBlockSize;
 	int nBlockNumy = (ny2+nBlockSize-1)/nBlockSize;
 	int nBlockNum = nBlockNumx*nBlockNumy;
-	std::vector<kd_node*> vecKDTree(nBlockNum);
+	std::vector<RBTree> vecKDTree(nBlockNum);
 	std::list<Block>::iterator blockIte = listDataBlock.begin();
 	m_pImage->Open(_bstr_t(m_szPathNameL), modeRead);
 	m_pImage2->Open(_bstr_t(m_szPathNameR), modeRead);
@@ -234,20 +236,21 @@ void match::domatch(std::vector<SamePoint>& resultData)
 		pBuf = NULL;
 		std::vector<Keypoint> feature;
 		sift(p, feature, blockIte->nXSize, blockIte->nYSize);
-		delete []p;
 		p = NULL;
 		std::vector<Keypoint>::iterator feaIte = feature.begin();
 		while(feaIte != feature.end())
 		{
 			feaIte->dx += blockIte->nXOrigin;
 			feaIte->dy += blockIte->nYOrigin;
-			int x = int(feaIte->dx*a+feaIte->dy*b+c);
-			int y = int(feaIte->dx*d+feaIte->dy*e+f);
-			int idx = x/nBlockSize;
-			int idy = y/nBlockSize;
+			int calx = int(feaIte->dx*a+feaIte->dy*b+c);
+			int caly = int(feaIte->dx*d+feaIte->dy*e+f);
+			int idx = calx/nBlockSize;
+			int idy = caly/nBlockSize;
 			int nBlockIndex = idy*nBlockNumx+idx;
-			if (vecKDTree[nBlockIndex] == NULL)
+			if (vecKDTree[nBlockIndex].node == NULL)
 			{
+				int xo = idx*nBlockSize;
+				int yo = idy*nBlockSize;
 				int xsize = nBlockSize;
 				int ysize = nBlockSize;
 				if (idx == nBlockNumx-1)
@@ -259,7 +262,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 					ysize = ny2%nBlockSize;
 				}
 				pBuf = new uchar[xsize*ysize*nband2];
-				m_pImage2->ReadImg(x, y, x+xsize, y+ysize, pBuf, xsize, ysize, nband2, 0, 0, xsize, ysize, -1, 0);
+				m_pImage2->ReadImg(xo, yo, xo+xsize, yo+ysize, pBuf, xsize, ysize, nband2, 0, 0, xsize, ysize, -1, 0);
 				p = new pixel_t[xsize*ysize];
 				for(int y = 0; y < ysize; ++y)
 				{
@@ -277,13 +280,73 @@ void match::domatch(std::vector<SamePoint>& resultData)
 				pBuf = NULL;
 				std::vector<Keypoint> feature2;
 				sift(p, feature2, xsize, ysize);
+				p = NULL;
 
+				int nf2 = feature2.size();
+				if (nf2 < 50)
+				{
+					++feaIte;
+					continue;
+				}
+				feat2 = (Keypoint*)malloc(nf2*sizeof(Keypoint));
+				std::vector<Keypoint>::iterator kIte2 = feature2.begin();
+				i = 0;
+				while(kIte2 != feature2.end())
+				{
+					kIte2->dx += xo;
+					kIte2->dy += yo;
+					feat2[i] = *kIte2;
+					++i;
+					++kIte2;
+				}
+				feature2.swap(std::vector<Keypoint>());
+				kd_root = kdtree_build(feat2, nf2);
+				vecKDTree[nBlockIndex].node = kd_root;
+				vecKDTree[nBlockIndex].feature = feat2;
 			}
+			k = kdtree_bbf_knn(vecKDTree[nBlockIndex].node, &(*feaIte), 2, &nbrs, KDTREE_BBF_MAX_NN_CHKS);
+			if (k == 2)
+			{
+				d0 = descr_dist_sq(&(*feaIte), nbrs[0]);
+				d1 = descr_dist_sq(&(*feaIte), nbrs[1]);
+				if (d0 < d1*NN_SQ_DIST_RATIO_THR)
+				{
+					sp.push_back(SamePoint(feaIte->dx, feaIte->dy, nbrs[0]->dx, nbrs[0]->dy));
+				}
+			}
+			free(nbrs);
+			++feaIte;
+		}
+		feature.swap(std::vector<Keypoint>());
+		std::vector<RBTree>::iterator kdIte = vecKDTree.begin();
+		while(kdIte != vecKDTree.end())
+		{
+			if (kdIte->node != NULL)
+			{
+				free(kdIte->node);
+				kdIte->node = NULL;
+				free(kdIte->feature);
+				kdIte->feature = NULL;
+			}
+			++kdIte;
 		}
 		++blockIte;
 	}
 	m_pImage->Close();
 	m_pImage2->Close();
+
+	mpEstimator.leastSquaresEstimate(sp, matParameters);
+
+	usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.9, 0.1, resultData);
+	sp.swap(std::vector<SamePoint>());
+	resultData.swap(std::vector<SamePoint>());
+
+	a = matParameters[0];
+	b = matParameters[1];
+	c = matParameters[2];
+	d = matParameters[3];
+	e = matParameters[4];
+	f = matParameters[5];
 
 
 	//mosaic

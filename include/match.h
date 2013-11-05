@@ -10,6 +10,14 @@ struct Pt
 	double y;
 };
 
+struct RBTree
+{
+	kd_node* node;
+	Keypoint* feature;
+	RBTree(){node = NULL; feature = NULL;}
+	RBTree(kd_node* n, Keypoint* feat, Keypoint** nb){node = n; feature = feat;}
+};
+
 struct Rec
 {
 	Rec(){left = 0; right = 0; top = 0; bottom = 0;}

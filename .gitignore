@@ -20,3 +20,5 @@ ipch/
 *.pdb
 *.exe
 *.ilk
+*.tfw
+*.tif
