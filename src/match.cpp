@@ -247,6 +247,12 @@ void match::domatch(std::vector<SamePoint>& resultData)
 			int idx = calx/nBlockSize;
 			int idy = caly/nBlockSize;
 			int nBlockIndex = idy*nBlockNumx+idx;
+			if (vecKDTree[nBlockIndex].num != 0 && vecKDTree[nBlockIndex].num < 50)
+			{
+				vecKDTree[nBlockIndex].num == 0;
+				++feaIte;
+				continue;
+			}
 			if (vecKDTree[nBlockIndex].node == NULL)
 			{
 				int xo = idx*nBlockSize;
@@ -281,8 +287,8 @@ void match::domatch(std::vector<SamePoint>& resultData)
 				std::vector<Keypoint> feature2;
 				sift(p, feature2, xsize, ysize);
 				p = NULL;
-
 				int nf2 = feature2.size();
+				vecKDTree[nBlockIndex].num = nf2;
 				if (nf2 < 50)
 				{
 					++feaIte;

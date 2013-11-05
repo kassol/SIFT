@@ -14,8 +14,9 @@ struct RBTree
 {
 	kd_node* node;
 	Keypoint* feature;
-	RBTree(){node = NULL; feature = NULL;}
-	RBTree(kd_node* n, Keypoint* feat, Keypoint** nb){node = n; feature = feat;}
+	int num;
+	RBTree(){node = NULL; feature = NULL;num = 0;}
+	RBTree(kd_node* n, Keypoint* feat, Keypoint** nb){node = n; feature = feat; num = 0;}
 };
 
 struct Rec
