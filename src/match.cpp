@@ -254,7 +254,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 			int nBlockIndex = idy*nBlockNumx+idx;
 			if (vecKDTree[nBlockIndex].num != 0 && vecKDTree[nBlockIndex].num < 50)
 			{
-				vecKDTree[nBlockIndex].num == 0;
+				vecKDTree[nBlockIndex].num = 0;
 				++feaIte;
 				continue;
 			}
