@@ -243,7 +243,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 		int count = 0;
 		while(feaIte != feature.end())
 		{
-			std::cout<<countblock<<"/"<<listDataBlock.size()<<":"<<count<<"/"<<feature.size()<<std::endl;
+			std::cout<<countblock<<"/"<<listDataBlock.size()<<":"<<count<<"/"<<feature.size()<<":"<<sp.size()<<std::endl;
 			++count;
 			feaIte->dx += blockIte->nXOrigin;
 			feaIte->dy += blockIte->nYOrigin;
@@ -350,8 +350,10 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	mpEstimator.leastSquaresEstimate(sp, matParameters);
 
 	usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.9, 0.1, resultData);
+	std::cout<<usedData<<":"<<resultData.size()<<std::endl;
 	sp.swap(std::vector<SamePoint>());
 	resultData.swap(std::vector<SamePoint>());
+
 
 	a = matParameters[0];
 	b = matParameters[1];
