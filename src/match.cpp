@@ -280,7 +280,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 						ysize = nBlockSize;
 					}
 				}
-				if (idx == nBlockNumx || idy == nBlockNumy)
+				if (idx >= nBlockNumx || idy >= nBlockNumy)
 				{
 					++feaIte;
 					continue;
