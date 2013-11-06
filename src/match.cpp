@@ -3,6 +3,7 @@
 #include "ransac.h"
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 
 
 
@@ -214,6 +215,8 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	m_pImage->Open(_bstr_t(m_szPathNameL), modeRead);
 	m_pImage2->Open(_bstr_t(m_szPathNameR), modeRead);
 	int countblock = 0;
+
+	std::list<SamePoint> listSP;
 	while(blockIte != listDataBlock.end())
 	{
 		pBuf = new uchar[blockIte->nXSize*blockIte->nYSize*nband1];
@@ -243,7 +246,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 		int count = 0;
 		while(feaIte != feature.end())
 		{
-			std::cout<<countblock<<"/"<<listDataBlock.size()<<":"<<count<<"/"<<feature.size()<<":"<<sp.size()<<std::endl;
+			std::cout<<countblock<<"/"<<listDataBlock.size()<<":"<<count<<"/"<<feature.size()<<":"<<listSP.size()<<std::endl;
 			++count;
 			feaIte->dx += blockIte->nXOrigin;
 			feaIte->dy += blockIte->nYOrigin;
@@ -335,7 +338,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 				d1 = descr_dist_sq(&(*feaIte), nbrs[1]);
 				if (d0 < d1*NN_SQ_DIST_RATIO_THR)
 				{
-					sp.push_back(SamePoint(feaIte->dx, feaIte->dy, nbrs[0]->dx, nbrs[0]->dy));
+					listSP.push_back(SamePoint(feaIte->dx, feaIte->dy, nbrs[0]->dx, nbrs[0]->dy));
 				}
 			}
 			free(nbrs);
@@ -359,6 +362,8 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	}
 	m_pImage->Close();
 	m_pImage2->Close();
+	std::vector<SamePoint> vecsp(std::make_move_iterator(std::begin(listSP)), std::make_move_iterator(std::end(listSP)));
+	sp.swap(vecsp);
 
 	mpEstimator.leastSquaresEstimate(sp, matParameters);
 
