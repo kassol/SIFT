@@ -267,10 +267,23 @@ void match::domatch(std::vector<SamePoint>& resultData)
 				if (idx == nBlockNumx-1)
 				{
 					xsize = nx2%nBlockSize;
+					if (xsize == 0)
+					{
+						xsize = nBlockSize;
+					}
 				}
 				if (idy == nBlockNumy-1)
 				{
 					ysize = ny2%nBlockSize;
+					if (ysize == 0)
+					{
+						ysize = nBlockSize;
+					}
+				}
+				if (idx == nBlockNumx || idy == nBlockNumy)
+				{
+					++feaIte;
+					continue;
 				}
 				pBuf = new uchar[xsize*ysize*nband2];
 				m_pImage2->ReadImg(xo, yo, xo+xsize, yo+ysize, pBuf, xsize, ysize, nband2, 0, 0, xsize, ysize, -1, 0);
