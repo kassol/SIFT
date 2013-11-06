@@ -363,6 +363,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	m_pImage->Close();
 	m_pImage2->Close();
 	std::vector<SamePoint> vecsp(std::make_move_iterator(std::begin(listSP)), std::make_move_iterator(std::end(listSP)));
+	listSP.clear();
 	sp.swap(vecsp);
 
 	mpEstimator.leastSquaresEstimate(sp, matParameters);
