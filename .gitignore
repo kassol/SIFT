@@ -22,3 +22,4 @@ ipch/
 *.ilk
 *.tfw
 *.tif
+main.cpp
