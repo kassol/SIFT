@@ -140,7 +140,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 
 	mpEstimator.leastSquaresEstimate(sp, matParameters);
 
-	double usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.9, 0.1, resultData);
+	double usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, resultData);
 	sp.swap(std::vector<SamePoint>());
 	resultData.swap(std::vector<SamePoint>());
 	
@@ -217,6 +217,8 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	int countblock = 0;
 
 	std::list<SamePoint> listSP;
+	std::vector<Keypoint> feature;
+	std::vector<Keypoint> feature2;
 	while(blockIte != listDataBlock.end())
 	{
 		pBuf = new uchar[blockIte->nXSize*blockIte->nYSize*nband1];
@@ -239,7 +241,6 @@ void match::domatch(std::vector<SamePoint>& resultData)
 		}
 		delete []pBuf;
 		pBuf = NULL;
-		std::vector<Keypoint> feature;
 		sift(p, feature, blockIte->nXSize, blockIte->nYSize);
 		p = NULL;
 		std::vector<Keypoint>::iterator feaIte = feature.begin();
@@ -254,10 +255,14 @@ void match::domatch(std::vector<SamePoint>& resultData)
 			int caly = int(feaIte->dx*d+feaIte->dy*e+f);
 			int idx = calx/nBlockSize;
 			int idy = caly/nBlockSize;
+			if (idx >= nBlockNumx || idy >= nBlockNumy)
+			{
+				++feaIte;
+				continue;
+			}
 			int nBlockIndex = idy*nBlockNumx+idx;
 			if (vecKDTree[nBlockIndex].num != 0 && vecKDTree[nBlockIndex].num < 50)
 			{
-				vecKDTree[nBlockIndex].num = 0;
 				++feaIte;
 				continue;
 			}
@@ -283,11 +288,6 @@ void match::domatch(std::vector<SamePoint>& resultData)
 						ysize = nBlockSize;
 					}
 				}
-				if (idx >= nBlockNumx || idy >= nBlockNumy)
-				{
-					++feaIte;
-					continue;
-				}
 				pBuf = new uchar[xsize*ysize*nband2];
 				m_pImage2->ReadImg(xo, yo, xo+xsize, yo+ysize, pBuf, xsize, ysize, nband2, 0, 0, xsize, ysize, -1, 0);
 				p = new pixel_t[xsize*ysize];
@@ -305,7 +305,6 @@ void match::domatch(std::vector<SamePoint>& resultData)
 				}
 				delete []pBuf;
 				pBuf = NULL;
-				std::vector<Keypoint> feature2;
 				sift(p, feature2, xsize, ysize);
 				p = NULL;
 				int nf2 = feature2.size();
