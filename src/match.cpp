@@ -367,7 +367,14 @@ void match::domatch(std::vector<SamePoint>& resultData)
 
 	mpEstimator.leastSquaresEstimate(sp, matParameters);
 
-	usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.9, 0.1, resultData);
+	if (sp.size() < 500)
+	{
+		usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, resultData);
+	}
+	else
+	{
+		usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.9, 0.1, resultData);
+	}
 	std::cout<<usedData<<":"<<resultData.size()<<std::endl;
 	sp.swap(std::vector<SamePoint>());
 	resultData.swap(std::vector<SamePoint>());
