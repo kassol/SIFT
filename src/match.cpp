@@ -42,7 +42,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	m_pImage->GetRows(&ny2);
 	m_pImage->GetBandNum(&nband2);
 	m_pImage->Close();
-	int mincr = min(min(min(nx1, ny1), nx2),ny2);
+	int mincr = /*max(max(max(nx1, ny1), nx2),ny2)*/(nx1+nx2+ny1+ny2)/4;
 	while(mincr/scale >1024)
 	{
 		scale *= 2;
@@ -373,7 +373,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	}
 	else
 	{
-		usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.9, 0.1, resultData);
+		usedData = Ransac<SamePoint, double>::compute(matParameters, &mpEstimator, sp, numForEstimate, 0.5, 0.8, resultData);
 	}
 	std::cout<<usedData<<":"<<resultData.size()<<std::endl;
 	sp.swap(std::vector<SamePoint>());
