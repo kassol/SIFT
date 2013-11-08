@@ -63,6 +63,14 @@ struct Rec
 		top = floor(top);
 		bottom = ceil(bottom);
 	}
+	double Width()
+	{
+		return right-left;
+	}
+	double Height()
+	{
+		return bottom-top;
+	}
 	double left;
 	double right;
 	double top;
