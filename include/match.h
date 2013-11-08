@@ -42,10 +42,6 @@ struct Rec
 	Rec Union(Rec& rect)
 	{
 		Rec temRec(left<rect.left?left:rect.left, right>rect.right?right:rect.right, top<rect.top?top:rect.top, bottom>rect.bottom?bottom:rect.bottom);
-		temRec.right -= temRec.left;
-		temRec.left = 0;
-		temRec.bottom -= temRec.top;
-		temRec.top = 0;
 		return temRec;
 	}
 	bool IsEmpty()

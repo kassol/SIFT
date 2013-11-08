@@ -396,8 +396,11 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	calrRightBottom.x = lRightBottom.x*a+lRightBottom.y*b+c;
 	calrRightBottom.y = lRightBottom.x*d+lRightBottom.y*e+f;
 	Rec calRight(calrLeftTop.x, calrRightBottom.x, calrLeftTop.y, calrRightBottom.y);
+	calRight.extend();
 	
 	Rec Right(0, nx2, 0, ny2);
+	Rec resultRec = Right.Union(calRight);
+
 	Rec resultRectR = calRight.Intersected(Right);
 	resultRectR.extend();
 	Pt callLeftTop;
@@ -414,7 +417,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	newXsize = (int)max(nx2, calrRightBottom.x);
 	newYsize = (int)max(ny2, calrRightBottom.y);
 	
-	m_pImage->CreateImg(_bstr_t("result.tif"), modeCreate, newXsize, newYsize, Pixel_Byte, nband1, BIL, 0, 0, 1);
+	m_pImage->CreateImg(_bstr_t("result.tif"), modeCreate, (int)resultRec.Width(), (int)resultRec.Height(), Pixel_Byte, nband1, BIL, 0, 0, 1);
 	IImage* pImage = NULL;
 	::CoCreateInstance(CLSID_ImageDriver, NULL, CLSCTX_ALL, IID_IImage, (void**)&pImage);
 	pImage->Open(_bstr_t(m_szPathNameR), modeRead);
@@ -424,13 +427,13 @@ void match::domatch(std::vector<SamePoint>& resultData)
 		if (i + nBlockSize < ny2)
 		{
 			pImage->ReadImg(0, i, nx2, i+nBlockSize, pBuf, nx2, nBlockSize, nband2, 0, 0, nx2, nBlockSize, -1, 0);
-			m_pImage->WriteImg(0, i, nx2, i+nBlockSize, pBuf, nx2, nBlockSize, nband2, 0, 0, nx2, nBlockSize, -1, 0);
+			m_pImage->WriteImg(int(0-resultRec.left), int(i-resultRec.top), int(nx2-resultRec.left), int(i+nBlockSize-resultRec.top), pBuf, nx2, nBlockSize, nband2, 0, 0, nx2, nBlockSize, -1, 0);
 			i += nBlockSize;
 		}
 		else
 		{
 			pImage->ReadImg(0, i, nx2, ny2, pBuf, nx2, nBlockSize, nband2, 0, 0, nx2, ny2-i, -1, 0);
-			m_pImage->WriteImg(0, i, nx2, ny2, pBuf, nx2, nBlockSize, nband2, 0, 0, nx2, ny2-i, -1, 0);
+			m_pImage->WriteImg(int(0-resultRec.left), int(i-resultRec.top), int(nx2-resultRec.left), int(ny2-resultRec.top), pBuf, nx2, nBlockSize, nband2, 0, 0, nx2, ny2-i, -1, 0);
 			i = ny2;
 		}
 	}
@@ -438,19 +441,19 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	delete []pBuf;
 	pImage->Open(_bstr_t(m_szPathNameL), modeRead);
 	pBuf = new uchar[nx1*nBlockSize*nband1];
-	for (int i = 0; i < ny1;)
+	for (int i = 0; i < calRight.Height();)
 	{
-		if (i+nBlockSize < ny1)
+		if (i+nBlockSize < calRight.Height())
 		{
 			pImage->ReadImg(0, i, nx1, i+nBlockSize, pBuf, nx1, nBlockSize, nband1, 0, 0, nx1, nBlockSize, -1, 0);
-			m_pImage->WriteImg((int)calrLeftTop.x, (int)calrLeftTop.y+i, (int)calrRightBottom.x, (int)calrLeftTop.y+i+nBlockSize, pBuf, nx1, nBlockSize, nband1, 0, 0, nx1, nBlockSize, -1, 0);
+			m_pImage->WriteImg(int(calRight.left-resultRec.left), int(calRight.top+i-resultRec.top), int(calRight.right-resultRec.left), int(calRight.top+i+nBlockSize-resultRec.top), pBuf, nx1, nBlockSize, nband1, 0, 0, nx1, nBlockSize, -1, 0);
 			i += nBlockSize;
 		}
 		else
 		{
 			pImage->ReadImg(0, i, nx1, ny1, pBuf, nx1, nBlockSize, nband1, 0, 0, nx1, ny1-i, -1, 0);
-			m_pImage->WriteImg((int)calrLeftTop.x, (int)calrLeftTop.y+i, (int)calrRightBottom.x, (int)calrLeftTop.y+ny1, pBuf, nx1, nBlockSize, nband1, 0, 0, nx1, ny1-i, -1, 0);
-			i = ny1;
+			m_pImage->WriteImg(int(calRight.left-resultRec.left), int(calRight.top+i-resultRec.top), int(calRight.right-resultRec.left), int(calRight.bottom-resultRec.top), pBuf, nx1, nBlockSize, nband1, 0, 0, nx1, ny1-i, -1, 0);
+			i = (int)calRight.Height();
 		}
 	}
 	pImage->Close();
