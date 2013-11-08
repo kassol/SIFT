@@ -399,7 +399,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	
 	Rec Right(0, nx2, 0, ny2);
 	Rec resultRectR = calRight.Intersected(Right);
-	resultRectR.extend(nx2, ny2);
+	resultRectR.extend();
 	Pt callLeftTop;
 	Pt callRightBottom;
 	callLeftTop.y = (d/a*resultRectR.left-resultRectR.top+f-c*d/a)/(b*d/a-e);
@@ -407,7 +407,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	callRightBottom.y = (d/a*resultRectR.right-resultRectR.bottom+f-c*d/a)/(b*d/a-e);
 	callRightBottom.x = (resultRectR.right-b*callRightBottom.y-c)/a;
 	Rec resultRectL(callLeftTop.x, callRightBottom.x, callLeftTop.y, callRightBottom.y);
-	resultRectL.extend(nx1, ny1);
+	resultRectL.extend();
 
 
 	int newXsize, newYsize;

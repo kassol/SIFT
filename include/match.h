@@ -47,28 +47,12 @@ struct Rec
 		}
 		return false;
 	}
-	void extend(int xmax, int ymax)
+	void extend()
 	{
 		left = floor(left);
-		if (left < 0)
-		{
-			left = 0;
-		}
 		right = ceil(right);
-		if (right > xmax)
-		{
-			right = xmax;
-		}
 		top = floor(top);
-		if (top < 0)
-		{
-			top = 0;
-		}
 		bottom = ceil(bottom);
-		if (bottom > ymax)
-		{
-			bottom = ymax;
-		}
 	}
 	double left;
 	double right;
