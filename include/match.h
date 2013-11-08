@@ -39,6 +39,10 @@ struct Rec
 		}
 		return Rec(0, 0, 0, 0);
 	}
+	Rec Union(Rec& rect)
+	{
+		Rec temRec(left<rect.left?left:rect.left, right>rect.right?right:rect.right, top<rect.top?top:rect.top, bottom>rect.bottom?bottom:rect.bottom);
+	}
 	bool IsEmpty()
 	{
 		if (right-left == 0 || top-bottom == 0)
