@@ -403,6 +403,7 @@ void match::domatch(std::vector<SamePoint>& resultData)
 
 	Rec resultRectR = calRight.Intersected(Right);
 	resultRectR.extend();
+
 	Pt callLeftTop;
 	Pt callRightBottom;
 	callLeftTop.y = (d/a*resultRectR.left-resultRectR.top+f-c*d/a)/(b*d/a-e);
@@ -412,14 +413,13 @@ void match::domatch(std::vector<SamePoint>& resultData)
 	Rec resultRectL(callLeftTop.x, callRightBottom.x, callLeftTop.y, callRightBottom.y);
 	resultRectL.extend();
 
-
-	int newXsize, newYsize;
-	newXsize = (int)max(nx2, calrRightBottom.x);
-	newYsize = (int)max(ny2, calrRightBottom.y);
+	
 	
 	m_pImage->CreateImg(_bstr_t("result.tif"), modeCreate, (int)resultRec.Width(), (int)resultRec.Height(), Pixel_Byte, nband1, BIL, 0, 0, 1);
 	IImage* pImage = NULL;
+	IImage* pImage2 = NULL;
 	::CoCreateInstance(CLSID_ImageDriver, NULL, CLSCTX_ALL, IID_IImage, (void**)&pImage);
+	::CoCreateInstance(CLSID_ImageDriver, NULL, CLSCTX_ALL, IID_IImage, (void**)&pImage2);
 	pImage->Open(_bstr_t(m_szPathNameR), modeRead);
 	pBuf = new uchar[nx2*nBlockSize*nband2];
 	for (int i = 0; i < ny2;)
@@ -457,6 +457,76 @@ void match::domatch(std::vector<SamePoint>& resultData)
 		}
 	}
 	pImage->Close();
+	delete []pBuf;
+	pBuf = NULL;
+	m_pImage->Close();
+	
+	pImage->Open(_bstr_t(m_szPathNameL), modeRead);
+	pImage2->Open(_bstr_t(m_szPathNameR), modeRead);
+	m_pImage->Open(_bstr_t("result.tif"), modeReadWrite);
+	pBuf = new uchar[nband1*(int)resultRectR.Width()*(int)resultRectR.Height()];
+	m_pImage->ReadImg(int(resultRectR.left-resultRec.left), int(resultRectR.top-resultRec.top), 
+		int(resultRectR.right-resultRec.left), int(resultRectR.bottom-resultRec.top), pBuf, (int)resultRectR.Width(),
+		(int)resultRectR.Height(), nband1, 0, 0, (int)resultRectR.Width(), (int)resultRectR.Height(), -1, 0);
+	uchar* pBufl = new uchar[nband1*(int)resultRectL.Width()*(int)resultRectL.Height()];
+	pImage->ReadImg((int)resultRectL.left, (int)resultRectL.top, (int)resultRectL.right, (int)resultRectL.bottom,
+		pBufl, (int)resultRectL.Width(), (int) resultRectL.Height(), nband1, 0, 0, (int)resultRectL.Width(), 
+		(int)resultRectL.Height(), -1, 0);
+	uchar* pBufr = new uchar[nband2*(int)resultRectR.Width()*(int)resultRectR.Height()];
+	pImage2->ReadImg((int)resultRectR.left, (int)resultRectR.top, (int)resultRectR.right, (int)resultRectR.bottom, 
+		pBufr, (int)resultRectR.Width(), (int)resultRectR.Height(), nband2, 0, 0, (int)resultRectR.Width(), 
+		(int)resultRectR.Height(), -1, 0);
+	
+	double lx, ly;
+	for (int y = 0; y < (int)resultRectR.Height(); ++y)
+	{
+		for (int x = 0; x < (int)resultRectR.Width()*nband1; x += nband1)
+		{
+			ly = (d/a*(x+resultRectR.left)-(y+resultRectR.top)+f-c*d/a)/(b*d/a-e);
+			lx = ((x+resultRectR.left)-b*ly-c)/a;
+			if (ly < resultRectL.top || lx < resultRectL.left)
+			{
+				continue;
+			}
+			if (pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)] < 50
+				&& pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+1] < 50
+				&& pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+2] < 50)
+			{
+				for (int n = 0; n < nband2; ++n)
+				{
+					pBuf[y*(int)resultRectR.Width()*nband1+x+n] = pBufr[y*(int)resultRectR.Width()*nband2+x+n];
+				}
+			}
+			else if (pBufr[y*(int)resultRectR.Width()*nband1+x] < 50
+				&& pBufr[y*(int)resultRectR.Width()*nband1+x+1]<50
+				&& pBufr[y*(int)resultRectR.Width()*nband1+x+2]<50)
+			{
+				for (int n = 0; n < nband1; ++n)
+				{
+					pBuf[y*(int)resultRectR.Width()*nband1+x+n] = 
+						pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+n];
+				}
+			}
+			else
+			{
+				for (int n = 0; n < nband1; ++n)
+				{
+					pBuf[y*(int)resultRectR.Width()*nband1+x+n] = 
+						(pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+n]
+					+ pBufr[y*(int)resultRectR.Width()*nband2+x+n])/2;
+				}
+			}
+		}
+	}
+	delete []pBufl;
+	pBufl = NULL;
+	delete []pBufr;
+	pBufr = NULL;
+
+	m_pImage->WriteImg(int(resultRectR.left-resultRec.left), int(resultRectR.top-resultRec.top), 
+		int(resultRectR.right-resultRec.left), int(resultRectR.bottom-resultRec.top), pBuf, (int)resultRectR.Width(),
+		(int)resultRectR.Height(), nband1, 0, 0, (int)resultRectR.Width(), (int)resultRectR.Height(), -1, 0);
+
 	delete []pBuf;
 	pBuf = NULL;
 	m_pImage->Close();
