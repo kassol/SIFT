@@ -488,18 +488,18 @@ void match::domatch(std::vector<SamePoint>& resultData)
 			{
 				continue;
 			}
-			if (pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)] < 50
-				&& pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+1] < 50
-				&& pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+2] < 50)
+			if (pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)] < 20
+				&& pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+1] < 20
+				&& pBufl[(int)(ly-resultRectL.top)*(int)resultRectL.Width()*nband1+(int)(lx-resultRectL.left)+2] < 20)
 			{
 				for (int n = 0; n < nband2; ++n)
 				{
 					pBuf[y*(int)resultRectR.Width()*nband1+x+n] = pBufr[y*(int)resultRectR.Width()*nband2+x+n];
 				}
 			}
-			else if (pBufr[y*(int)resultRectR.Width()*nband1+x] < 50
-				&& pBufr[y*(int)resultRectR.Width()*nband1+x+1]<50
-				&& pBufr[y*(int)resultRectR.Width()*nband1+x+2]<50)
+			else if (pBufr[y*(int)resultRectR.Width()*nband1+x] < 20
+				&& pBufr[y*(int)resultRectR.Width()*nband1+x+1]<20
+				&& pBufr[y*(int)resultRectR.Width()*nband1+x+2]<20)
 			{
 				for (int n = 0; n < nband1; ++n)
 				{
